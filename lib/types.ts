@@ -1,5 +1,12 @@
 import type { LucideIcon } from "lucide-react";
 
+import type {
+  PaperOrderRecord,
+  PaperOrderSide,
+  PaperOrderStatus,
+  PaperOrderType,
+} from "./contracts/paper-trading";
+
 export type DataKind = "DEMO DATA" | "SIMULATED" | "UNAVAILABLE";
 
 export type IdeaDirection =
@@ -7,11 +14,11 @@ export type IdeaDirection =
   | "POTENTIAL SHORT"
   | "WATCH";
 
-export type OrderSide = "LONG" | "SHORT";
+export type OrderSide = PaperOrderSide;
 
-export type OrderType = "Market" | "Limit" | "Stop" | "Stop-limit";
+export type OrderType = PaperOrderType;
 
-export type PaperOrderStatus = "PENDING — DEMO DATA REQUIRED";
+export type PaperOrder = PaperOrderRecord;
 
 export type NavigationItem = {
   label: string;
@@ -41,18 +48,17 @@ export type TradeIdea = {
   timestamp: string;
 };
 
-export type PaperOrder = {
-  id: number;
-  ticker: string;
-  side: OrderSide;
-  orderType: OrderType;
-  quantity: number;
-  status: PaperOrderStatus;
-  createdAt: string;
-};
-
 export type InfoCardData = {
   title: string;
   body: string;
   source: string;
 };
+
+export type PaperTradingClientState = {
+  loading: boolean;
+  submittingOrder: boolean;
+  cancellingOrderId: string | null;
+  error: string | null;
+};
+
+export type PaperOrderStatusLabel = PaperOrderStatus;
