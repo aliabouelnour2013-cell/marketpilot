@@ -59,6 +59,7 @@ select:focus-visible {
   position: sticky;
   top: 0;
   height: 100vh;
+  overflow-y: auto;
 }
 
 .brand {
@@ -879,6 +880,13 @@ td {
   align-items: center;
   gap: 14px;
   margin-top: 14px;
+}
+
+.education-copy {
+  color: #b3bdcb;
+  font-size: 11px;
+  line-height: 1.65;
+  margin: 14px 0 0;
 }
 
 .modal-backdrop {
