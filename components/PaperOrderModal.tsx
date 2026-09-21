@@ -7,6 +7,8 @@ export function PaperOrderModal({
   orderSide,
   orderType,
   quantity,
+  submitting,
+  error,
   onClose,
   onSetOrderSide,
   onSetOrderType,
@@ -17,12 +19,17 @@ export function PaperOrderModal({
   orderSide: OrderSide;
   orderType: OrderType;
   quantity: number;
+  submitting: boolean;
+  error: string | null;
   onClose: () => void;
   onSetOrderSide: (side: OrderSide) => void;
   onSetOrderType: (type: OrderType) => void;
   onSetQuantity: (quantity: number) => void;
   onSubmit: () => void;
 }) {
+  const validQuantity =
+    Number.isInteger(quantity) && Number.isFinite(quantity) && quantity > 0;
+
   return (
     <div className="modal-backdrop" onClick={onClose} role="presentation">
       <section
@@ -36,6 +43,7 @@ export function PaperOrderModal({
           className="close"
           type="button"
           onClick={onClose}
+          disabled={submitting}
           aria-label="Close paper-trading ticket"
         >
           <X />
@@ -57,6 +65,7 @@ export function PaperOrderModal({
                 : "order long"
             }
             type="button"
+            disabled={submitting}
             onClick={() => onSetOrderSide("LONG")}
           >
             LONG
@@ -69,6 +78,7 @@ export function PaperOrderModal({
                 : "order short"
             }
             type="button"
+            disabled={submitting}
             onClick={() => onSetOrderSide("SHORT")}
           >
             SHORT
@@ -80,7 +90,9 @@ export function PaperOrderModal({
           <input
             type="number"
             min="1"
-            value={quantity}
+            step="1"
+            value={Number.isFinite(quantity) ? quantity : ""}
+            disabled={submitting}
             onChange={(event) => onSetQuantity(Number(event.target.value))}
           />
         </label>
@@ -89,9 +101,8 @@ export function PaperOrderModal({
           Order type
           <select
             value={orderType}
-            onChange={(event) =>
-              onSetOrderType(event.target.value as OrderType)
-            }
+            disabled={submitting}
+            onChange={(event) => onSetOrderType(event.target.value as OrderType)}
           >
             <option value="Market">Market</option>
             <option value="Limit">Limit</option>
@@ -110,8 +121,21 @@ export function PaperOrderModal({
           </span>
         </div>
 
-        <button className="primary" type="button" onClick={onSubmit}>
-          Explicitly place simulated order
+        {error && (
+          <div className="form-error" role="alert">
+            {error}
+          </div>
+        )}
+
+        <button
+          className="primary"
+          type="button"
+          disabled={submitting || !validQuantity}
+          onClick={onSubmit}
+        >
+          {submitting
+            ? "Creating simulated order..."
+            : "Explicitly place simulated order"}
         </button>
 
         <p className="modal-footnote">
