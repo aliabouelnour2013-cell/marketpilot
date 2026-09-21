@@ -1,5 +1,6 @@
 import { BrainCircuit, ChevronRight } from "lucide-react";
 
+import type { ProviderStatus } from "@/lib/contracts/market-data";
 import type { TradeIdea } from "@/lib/types";
 
 import { ChallengePanel } from "./ChallengePanel";
@@ -26,12 +27,25 @@ export function AiAnalystView({
   onOpenPaperTrade,
   onChallenge,
   challengeOpen,
+  providerStatus,
+  providerStatusLoading,
 }: {
   selectedIdea: TradeIdea;
   onOpenPaperTrade: () => void;
   onChallenge: () => void;
   challengeOpen: boolean;
+  providerStatus: ProviderStatus | null;
+  providerStatusLoading: boolean;
 }) {
+  const providerMessage = providerStatusLoading
+    ? "Checking the server-side market-data provider status."
+    : providerStatus?.message ??
+      "Provider status is unavailable. MarketPilot must not present demo values as live or source-backed market data.";
+
+  const providerTimestamp = providerStatus
+    ? new Date(providerStatus.metadata.retrievedAt).toLocaleString()
+    : "Unavailable";
+
   return (
     <section className="page-section">
       <PageHeading
@@ -54,6 +68,11 @@ export function AiAnalystView({
           connected. The structure below demonstrates the required transparent
           format for a future analysis.
         </p>
+
+        <AnalysisRow
+          label="Classification"
+          value="AI interpretation of demo-only placeholders. This is not reported, calculated, estimated, or live provider data."
+        />
 
         <AnalysisRow label="Summary" value="WATCH — not a recommendation." />
 
@@ -88,6 +107,16 @@ export function AiAnalystView({
         <AnalysisRow label="Source" value={selectedIdea.source} />
 
         <AnalysisRow label="Timestamp" value={selectedIdea.timestamp} />
+
+        <AnalysisRow
+          label="Provider status"
+          value={providerMessage}
+        />
+
+        <AnalysisRow
+          label="Provider timestamp"
+          value={providerTimestamp}
+        />
 
         <div className="analyst-actions">
           <button className="challenge" type="button" onClick={onChallenge}>
