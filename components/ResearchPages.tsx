@@ -18,9 +18,11 @@ import {
   marketTickerData,
   screenerFilters,
 } from "@/lib/demo-data";
+import type { ProviderStatus } from "@/lib/contracts/market-data";
 import type { TradeIdea } from "@/lib/types";
 
 import { AiSummaryCard } from "./AiSummaryCard";
+import { DataBadge } from "./DataBadge";
 import { EmptyState } from "./EmptyState";
 import { PageHeading } from "./PageHeading";
 import { StockSummaryCard } from "./StockSummaryCard";
@@ -69,7 +71,84 @@ function TickerRow() {
   );
 }
 
-export function MarketsView() {
+function DataProviderStatusCard({
+  providerStatus,
+  loading,
+}: {
+  providerStatus: ProviderStatus | null;
+  loading: boolean;
+}) {
+  return (
+    <section className="card provider-status-card">
+      <div className="card-head">
+        <div className="card-title">
+          <Activity size={18} />
+          Data-provider architecture
+          <DataBadge kind="DEMO DATA" />
+        </div>
+      </div>
+
+      {loading ? (
+        <p className="provider-status-copy">
+          Checking the server-side market-data status endpoint...
+        </p>
+      ) : providerStatus ? (
+        <>
+          <p className="provider-status-copy">{providerStatus.message}</p>
+
+          <div className="provider-grid">
+            <ProviderRow label="Quotes" value={providerStatus.quoteProvider} />
+            <ProviderRow
+              label="Historical prices"
+              value={providerStatus.historicalPriceProvider}
+            />
+            <ProviderRow
+              label="Fundamentals"
+              value={providerStatus.fundamentalsProvider}
+            />
+            <ProviderRow
+              label="SEC filings"
+              value={providerStatus.filingsProvider}
+            />
+            <ProviderRow label="News" value={providerStatus.newsProvider} />
+            <ProviderRow
+              label="Earnings"
+              value={providerStatus.earningsProvider}
+            />
+          </div>
+
+          <div className="source-line">
+            Source: {providerStatus.metadata.source} · Timestamp:{" "}
+            {new Date(providerStatus.metadata.retrievedAt).toLocaleString()} ·
+            Status: {providerStatus.metadata.status}
+          </div>
+        </>
+      ) : (
+        <p className="provider-status-copy">
+          Provider status is unavailable. MarketPilot must continue displaying
+          demo or unavailable data rather than claiming live coverage.
+        </p>
+      )}
+    </section>
+  );
+}
+
+function ProviderRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="provider-row">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+export function MarketsView({
+  providerStatus,
+  providerStatusLoading,
+}: {
+  providerStatus: ProviderStatus | null;
+  providerStatusLoading: boolean;
+}) {
   const marketIcons = [
     <Activity key="activity" size={19} />,
     <BarChart3 key="bar-chart" size={19} />,
@@ -85,7 +164,12 @@ export function MarketsView() {
 
       <TickerRow />
 
-      <div className="three-column-grid">
+      <DataProviderStatusCard
+        providerStatus={providerStatus}
+        loading={providerStatusLoading}
+      />
+
+      <div className="three-column-grid lower-grid">
         {marketPlaceholderCards.map((card, index) => (
           <InfoCard
             key={card.title}
@@ -105,11 +189,15 @@ export function StockView({
   onOpenPaperTrade,
   onChallenge,
   challengeOpen,
+  providerStatus,
+  providerStatusLoading,
 }: {
   selectedIdea: TradeIdea;
   onOpenPaperTrade: () => void;
   onChallenge: () => void;
   challengeOpen: boolean;
+  providerStatus: ProviderStatus | null;
+  providerStatusLoading: boolean;
 }) {
   return (
     <section className="page-section">
@@ -128,6 +216,13 @@ export function StockView({
           idea={selectedIdea}
           onChallenge={onChallenge}
           challengeOpen={challengeOpen}
+        />
+      </div>
+
+      <div className="lower-grid">
+        <DataProviderStatusCard
+          providerStatus={providerStatus}
+          loading={providerStatusLoading}
         />
       </div>
 
@@ -325,7 +420,13 @@ export function BacktestingView() {
   );
 }
 
-export function SettingsView() {
+export function SettingsView({
+  providerStatus,
+  providerStatusLoading,
+}: {
+  providerStatus: ProviderStatus | null;
+  providerStatusLoading: boolean;
+}) {
   return (
     <section className="page-section">
       <PageHeading
@@ -333,7 +434,12 @@ export function SettingsView() {
         description="Secrets, provider credentials, and user settings should be stored server-side only after authentication and database persistence are implemented."
       />
 
-      <div className="three-column-grid">
+      <DataProviderStatusCard
+        providerStatus={providerStatus}
+        loading={providerStatusLoading}
+      />
+
+      <div className="three-column-grid lower-grid">
         <InfoCard
           title="Data providers"
           icon={<Activity size={19} />}
