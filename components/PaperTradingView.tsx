@@ -1,6 +1,6 @@
-import { CircleDollarSign, Wallet } from "lucide-react";
+import { CircleDollarSign, Wallet, XCircle } from "lucide-react";
 
-import type { PaperOrder } from "@/lib/types";
+import type { PaperAccountSnapshot } from "@/lib/contracts/paper-trading";
 
 import { DataBadge } from "./DataBadge";
 import { EmptyState } from "./EmptyState";
@@ -20,20 +20,28 @@ function MetricCard({
       <span>{label}</span>
       <strong>{value}</strong>
       <DataBadge kind={kind} />
-      <small>
-        Source: paper simulator · Demo data loaded with the application
-      </small>
+      <small>Source: paper simulator · DEMO MODE</small>
     </section>
   );
 }
 
 export function PaperTradingView({
-  orders,
+  account,
+  loading,
+  error,
+  cancellingOrderId,
   onOpenPaperTrade,
+  onCancelOrder,
 }: {
-  orders: PaperOrder[];
+  account: PaperAccountSnapshot | null;
+  loading: boolean;
+  error: string | null;
+  cancellingOrderId: string | null;
   onOpenPaperTrade: () => void;
+  onCancelOrder: (orderId: string) => void;
 }) {
+  const orders = account?.orders ?? [];
+
   return (
     <section className="page-section">
       <PageHeading
@@ -42,15 +50,25 @@ export function PaperTradingView({
       />
 
       <div className="paper-overview">
-        <MetricCard label="Virtual cash" value="$100,000.00" kind="SIMULATED" />
-
         <MetricCard
-          label="Portfolio value"
-          value="$100,000.00"
+          label="Virtual cash"
+          value={account ? formatCurrency(account.virtualCash) : "Loading..."}
           kind="SIMULATED"
         />
 
-        <MetricCard label="Realized P/L" value="$0.00" kind="SIMULATED" />
+        <MetricCard
+          label="Portfolio value"
+          value={account ? formatCurrency(account.portfolioValue) : "Loading..."}
+          kind="SIMULATED"
+        />
+
+        <MetricCard
+          label="Realized P/L"
+          value={
+            account ? formatCurrency(account.realizedProfitLoss) : "Loading..."
+          }
+          kind="SIMULATED"
+        />
 
         <MetricCard
           label="Unrealized P/L"
@@ -64,6 +82,7 @@ export function PaperTradingView({
           <div className="card-title">
             <Wallet size={18} />
             Simulated order history
+            <DataBadge kind="SIMULATED" />
           </div>
 
           <button
@@ -75,7 +94,15 @@ export function PaperTradingView({
           </button>
         </div>
 
-        {orders.length === 0 ? (
+        {error && (
+          <div className="form-error paper-page-error" role="alert">
+            {error}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="loading-state">Loading server-side demo paper account...</div>
+        ) : orders.length === 0 ? (
           <EmptyState
             icon={<CircleDollarSign size={24} />}
             title="No simulated orders yet"
@@ -92,24 +119,61 @@ export function PaperTradingView({
                   <th>Type</th>
                   <th>Quantity</th>
                   <th>Status</th>
+                  <th>Action</th>
                 </tr>
               </thead>
 
               <tbody>
-                {orders.map((order) => (
-                  <tr key={order.id}>
-                    <td>{order.createdAt}</td>
-                    <td>{order.ticker}</td>
-                    <td>{order.side}</td>
-                    <td>{order.orderType}</td>
-                    <td>{order.quantity}</td>
-                    <td>{order.status}</td>
-                  </tr>
-                ))}
+                {orders.map((order) => {
+                  const isPending =
+                    order.status === "PENDING — DEMO DATA REQUIRED";
+                  const isCancelling = cancellingOrderId === order.id;
+
+                  return (
+                    <tr key={order.id}>
+                      <td>{formatTimestamp(order.createdAt)}</td>
+                      <td>{order.ticker}</td>
+                      <td>{order.side}</td>
+                      <td>{order.orderType}</td>
+                      <td>{order.quantity}</td>
+                      <td>{order.status}</td>
+                      <td>
+                        {isPending ? (
+                          <button
+                            type="button"
+                            className="cancel-order"
+                            disabled={isCancelling}
+                            onClick={() => onCancelOrder(order.id)}
+                          >
+                            <XCircle size={13} />
+                            {isCancelling ? "Cancelling..." : "Cancel"}
+                          </button>
+                        ) : (
+                          <span className="muted">No action</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
+
+        <div className="paper-notice">
+          <strong>Simulation status</strong>
+          <p>
+            {account?.simulationNotice ??
+              "SIMULATED / PAPER TRADE ONLY. No brokerage connection exists."}
+          </p>
+          {account && (
+            <div className="source-line">
+              Source: {account.dataMetadata.source} · Timestamp:{" "}
+              {formatTimestamp(account.dataMetadata.retrievedAt)} · Data status:{" "}
+              {account.dataMetadata.status}
+            </div>
+          )}
+        </div>
 
         <p className="card-footnote">
           Data status: unavailable. A future paper-trading engine must use
@@ -120,4 +184,15 @@ export function PaperTradingView({
       </section>
     </section>
   );
+}
+
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(value);
+}
+
+function formatTimestamp(value: string) {
+  return new Date(value).toLocaleString();
 }
