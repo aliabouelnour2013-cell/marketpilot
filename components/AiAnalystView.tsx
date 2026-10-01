@@ -22,6 +22,8 @@ function AnalysisRow({
   );
 }
 
+import { AnalystAiPanel } from "./AnalystAiPanel";
+
 export function AiAnalystView({
   selectedIdea,
   onOpenPaperTrade,
@@ -29,6 +31,8 @@ export function AiAnalystView({
   challengeOpen,
   providerStatus,
   providerStatusLoading,
+  premium,
+  billingLoading,
 }: {
   selectedIdea: TradeIdea;
   onOpenPaperTrade: () => void;
@@ -36,6 +40,8 @@ export function AiAnalystView({
   challengeOpen: boolean;
   providerStatus: ProviderStatus | null;
   providerStatusLoading: boolean;
+  premium: boolean;
+  billingLoading: boolean;
 }) {
   const providerMessage = providerStatusLoading
     ? "Checking the server-side market-data provider status."
@@ -51,6 +57,13 @@ export function AiAnalystView({
       <PageHeading
         title="AI Analyst"
         description="AI interpretation must be separated from reported data, calculated values, estimated values, and unavailable data."
+      />
+
+      <AnalystAiPanel
+        key={selectedIdea.ticker}
+        idea={selectedIdea}
+        premium={premium}
+        billingLoading={billingLoading}
       />
 
       <section className="card analyst-page">

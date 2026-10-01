@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 
 import type { ApiResponse } from "@/lib/contracts/api";
 import type { ProviderStatus } from "@/lib/contracts/market-data";
@@ -16,6 +16,7 @@ import { MarketNewsCard } from "@/components/MarketNewsCard";
 import { PaperOrderModal } from "@/components/PaperOrderModal";
 import { PaperPortfolioCard } from "@/components/PaperPortfolioCard";
 import { PaperTradingView } from "@/components/PaperTradingView";
+import { PricingContent } from "@/components/PricingContent";
 import {
   BacktestingView,
   EarningsView,
@@ -69,6 +70,9 @@ export default function Home() {
     null,
   );
   const [providerStatusLoading, setProviderStatusLoading] = useState(true);
+
+  const [billingPremium, setBillingPremium] = useState(false);
+  const [billingLoading, setBillingLoading] = useState(true);
 
   const selectedIdea =
     tradeIdeas.find((idea) => idea.ticker === selectedTicker) ?? tradeIdeas[0];
@@ -144,10 +148,35 @@ export default function Home() {
     }
   }, []);
 
+  const loadBillingStatus = useCallback(async () => {
+    setBillingLoading(true);
+
+    try {
+      const response = await fetch("/api/billing/status", {
+        cache: "no-store",
+      });
+      const payload = (await response.json()) as ApiResponse<{
+        premium: boolean;
+      }>;
+
+      setBillingPremium(
+        response.ok && payload.ok ? payload.data.premium === true : false,
+      );
+    } catch {
+      setBillingPremium(false);
+    } finally {
+      setBillingLoading(false);
+    }
+  }, []);
+
+  // Intentional data fetch on mount: loads the simulated account and
+  // provider status once when the app starts.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadPaperAccount();
     void loadProviderStatus();
-  }, [loadPaperAccount, loadProviderStatus]);
+    void loadBillingStatus();
+  }, [loadPaperAccount, loadProviderStatus, loadBillingStatus]);
 
   async function createPaperOrder() {
     const normalizedQuantity = Math.max(1, Math.floor(Number(quantity) || 1));
@@ -353,7 +382,16 @@ export default function Home() {
             challengeOpen={challengeOpen}
             providerStatus={providerStatus}
             providerStatusLoading={providerStatusLoading}
+            premium={billingPremium}
+            billingLoading={billingLoading}
           />
+        );
+
+      case "Pricing":
+        return (
+          <Suspense>
+            <PricingContent />
+          </Suspense>
         );
 
       case "Settings":

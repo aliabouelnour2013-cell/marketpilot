@@ -6,6 +6,7 @@ import {
   BrainCircuit,
   CalendarDays,
   CircleDollarSign,
+  CreditCard,
   FileText,
   LayoutDashboard,
   Newspaper,
@@ -34,5 +35,6 @@ export const navigationItems: NavigationItem[] = [
   { label: "Backtesting", icon: BarChart3 },
   { label: "Education", icon: BookOpen },
   { label: "AI Analyst", icon: BrainCircuit },
+  { label: "Pricing", icon: CreditCard },
   { label: "Settings", icon: Settings },
 ];

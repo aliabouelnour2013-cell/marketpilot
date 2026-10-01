@@ -14,7 +14,12 @@ export type ApiError = {
       | "BAD_REQUEST"
       | "NOT_FOUND"
       | "METHOD_NOT_ALLOWED"
-      | "INTERNAL_ERROR";
+      | "INTERNAL_ERROR"
+      | "UNAUTHORIZED"
+      | "VALIDATION_ERROR"
+      | "RATE_LIMITED"
+      | "CONFLICT"
+      | "PAYMENT_REQUIRED";
     message: string;
     details?: Record<string, string>;
   };

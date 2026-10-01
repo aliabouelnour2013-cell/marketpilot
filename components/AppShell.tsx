@@ -3,6 +3,7 @@ import { Bell, Search } from "lucide-react";
 
 import { DemoBanner } from "./DemoBanner";
 import { Sidebar } from "./Sidebar";
+import { UserMenu } from "./UserMenu";
 
 export function AppShell({
   activePage,
@@ -49,9 +50,7 @@ export function AppShell({
               <Bell size={18} />
             </button>
 
-            <div className="avatar" title="Local demo profile">
-              MP
-            </div>
+            <UserMenu />
           </div>
         </header>
 

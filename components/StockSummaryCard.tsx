@@ -73,7 +73,7 @@ export function StockSummaryCard({
             />
 
             <Tooltip
-              formatter={(value: number | string | undefined) => [
+              formatter={(value: unknown) => [
                 `${String(value)} (demo)`,
                 "Demo price",
               ]}
